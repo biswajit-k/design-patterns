@@ -11,7 +11,7 @@ They are divided into three categories:
 
 
 ## Creational Design Patterns
-Ways on how to create objects when there some complex structure or requirements.
+Ways on how to create objects when there is some complex structure or requirements.
 
 
 ### Factory Method
@@ -149,7 +149,7 @@ Advantages of factory are-
      
 * Separating creation logic. Client doesn't need to know how to create item. Plus if creation logic needs to be changed, client code doesn't need to be altered.
 
-### Builder Patterns
+### Builder Pattern
 
 When you have multiple different configurations possible to create an
 object. For example, to create a burger, you have options to add/not add
@@ -274,4 +274,51 @@ director->setBuilder(cementBuilder);
 CementHouse* myCementHouse = director->constructHouse();
 
 // yay! I have myWoodenHouse and myCementHouse
+```
+
+### Singleton Pattern
+
+It restricts a class to have only one instance. No matter how many times we create an object, the same instance is returned.
+
+This is useful when we want to have single object to be used application wide. For example - a database connection, a logger.
+
+This is also used when we want to get global access to an object.
+
+This is a shared resource so in case of concurrent access, we need to design it accordingly.
+
+#### Method
+1. Make the constructor private
+2. Have a public function for object creation calls the constructor first time and saves object in a static field, further calls return the same object.
+
+```cpp
+class DatabaseConnection {
+
+    string uri;
+
+    DatabaseConnection(string databaseUri) : uri(databaseUri) {
+        cout << "database connection created" << endl;
+    }
+
+    DatabaseConnection(DatabaseConnection&) = delete;
+    DatabaseConnection& operator=(DatabaseConnection&) = delete;
+
+    public:
+
+    static DatabaseConnection& getInstance(string databaseUri) {
+        static DatabaseConnection instance(databaseUri);
+        return instance;
+    }
+
+    void executeQuery(string query) {
+        // call database with the query using uri
+    }
+
+};
+
+// main
+
+DatabaseConnection& connection = DatabaseConnection::getInstance("http://localhost:3456");
+
+connection.executeQuery("select * from accounts");
+
 ```
