@@ -181,17 +181,12 @@ class House {
     int windows, garage;
 
     public:
-    void setWalls(string walls) {
-        this.walls = walls;
-    }
-    void setDoors(string doors) {
-        this.doors = doors;
-    }
-    void setWindows(int windows) {
-        this.windows = windows;
-    }
-    void setGarage(int garage) {
-        this.garage = garage;
+    House(HouseBuilder builder) {
+        this.walls = builder.walls;
+        this.doors = builder.doors;
+        this.windows = builder.windows;
+        this.garage = builder.garage;
+        
     }
 };
 
@@ -322,3 +317,291 @@ DatabaseConnection& connection = DatabaseConnection::getInstance("http://localho
 connection.executeQuery("select * from accounts");
 
 ```
+
+## Structural Design Patterns
+
+Methods to create different structures using existing object/classes
+
+### Adapter Pattern
+
+Making two incompatible interfaces compatible by using an adpater.
+
+**idea**
+
+Interface 1 and interface 2 have different function signatures to execute
+same thing. Adapter implements interface 1 and within that function it makes
+call to function of interface 2 in the format it requests.
+
+Below is the class diagram for the same-
+
+![adapter pattern class diagram](/assets/adapter_class_diagram.png)
+
+The adapter has adaptee as its class member i.e composition is used.
+
+There is another method called class adapter where the adapter inherit the adaptee instead of using it as its member. Then it can simply call the inherited method
+
+> In python, if you inherit from multiple classes, and they have common method, then `super.method_name()` will call method of first class listed in inheritance.
+```python
+class A():
+    def drive():
+        pass
+
+class B():
+    def drive():
+        pass
+
+class C(A, B):
+    def drive():
+        super.drive()   # will call A's drive as it is listed first in inheritance list
+
+# If we want to call B's we can do B.drive()
+```
+
+**Usecases**
+* We had a SQL service to store our e-commerce website data. Now we want to shift
+to No-SQL database. We create an adapter that coverts existing commands to be executed
+in our No-SQL database.
+* We have to integrate multiple third party payment gateways like paypal, stripe.
+And we already have a simple `PaymentProcesser`. We create adapters for each
+payment gateway so exsitng codebase works normally, just we need to use the
+adapter of the required payment gateway.
+* Synchronous to muiti-threaded converter.
+* Let's say a new implementation of a function came which has different signature. We can use an adapter which still takes old function's signature and internally calls the new function with required signature. In this way we don't have to change the existing code.
+
+
+**Note**
+
+Adapter and decorator both wrap an interface. However, they
+are different in the sense that adapter makes call of one interface
+to be compatible with similar call of another interface w/o changing
+any functionality.
+
+However, the decorator wraps and adds additional behaviour to the existing
+functionality.
+
+**Code**
+
+In below code, we have a gear car, however our client wants automatic car
+which takes speed and drive. So, we create an adapter that wraps over
+the gear car, takes the speed as input and applies necessary gear to drive
+at that speed.
+
+
+```python
+from abc import ABC, abstractmethod
+
+class GearCar():
+
+    def __init__(self) -> None:
+        self.current_gear = 0   # neutral by default
+    
+    def drive(self, gear) -> None:
+        self.current_gear = gear
+        self.__acclerate(gear)
+
+    def __acclerate(self, gear) -> None:
+        pass
+
+
+class AutoCar(ABC):
+
+    @abstractmethod
+    def drive(self, speed) -> None:
+        pass
+
+
+class AutoCarAdapter(AutoCar):
+
+    def __init__(self) -> None:
+        self._gear_car = GearCar()
+
+    def drive(self, speed) -> None:
+        if speed >= 0 and speed <= 10:
+            self._current_gear = 1
+        elif speed <= 25:
+            self._current_gear = 2
+        elif speed <= 30:
+            self._current_gear = 3
+        elif speed <= 50:
+            self._current_gear = 4
+        else:
+            self._current_gear = 5
+
+        self._gear_car.drive(self._current_gear)
+
+
+
+
+
+
+# main code
+auto_car_adapter = AutoCarAdapter()
+
+SPEED = 40
+auto_car_adapter.drive(40)  # take 40km/hr speed and call 4th gear of car internally
+```
+
+### Facade Pattern
+
+When we have a system consisting of multiple classes each interacting with each other and we want a simple way to perform an operation. For example, a compiler that has a *parser*, *tokenizer*, *symbol table*, etc. and we want to compile a sentence.
+
+The *tokenizer* would need *symbol table* before hand, in XYZ way, the *parser* would need some other thing. all of these would interact with each other in complex way.
+
+**idea**
+
+We will create a class that defines the method `compile` which would take care of initializing all the compiler components and calling them in whatever order in whatever way to give us the output.
+
+
+![facade pattern](/assets/facade_pattern.png)
+
+
+**code**
+
+```python
+
+class SymbolTable:
+    ...
+
+class Tokenizer:
+    def __init__(self, symbol_table: SymbolTable) -> None:
+        pass
+
+class Parser:
+    def __init__(self, symbol_table, tokenizer) -> None:
+        pass
+
+# compiler facade - hides all the complexity, and provides required, limited functionality access
+class Compiler:
+    def __init__(self) -> None:
+        symbol_table = SymbolTable(...)
+        symbol_table.init()
+
+        tokenizer = Tokenizer(symbol_table)
+        ...
+
+    def compile(statement: str) -> str:
+        symbols = symbol_table.get_symbols()
+        ...
+        return result
+
+
+```
+
+
+### Proxy Pattern
+
+Controlling access to an object through another object(proxy). This is done for reasons like - security, caching, etc
+
+
+There are three types of proxy-
+
+* **Remote Proxy**: A proxy that interacts with a remote object. This is helpful when you want to control the identity/ip through which request is sent to server(say using user's token), or maybe in Nodejs, we can avoid returning promises by awaiting in our proxy and returning final result.
+
+* **Virtual Proxy**: when an object is expensive to create(or expensive method) we can do things lazily. When we initialize the object/call the method, it will show us that it is created, on the back hand it will do things lazily(hence virtual).
+
+* **Protection Proxy**: Authenticate/authorize before providing access to object.
+
+
+It is different from decorator pattern in the sense that although it adds functionality, it is only to control access and not modify core behaviour
+
+![proxy pattern](/assets/proxy%20pattern.png)
+
+In above, the proxy has the `real subject` and both proxy and real subject implement the interface `Isubject` 
+
+
+### Decorator Pattern
+
+Adding additional functionality over existing object while keeping the interface same.
+
+**idea**
+
+The decorator is a wrapper with same interface as the object it is wrapping, which adds/modify functionality of the object
+
+![decorator pattern](/assets/decorator_pattern.png)
+
+In above, we have two main coffee(decaf, expresso) and we have additional flavours like caramel, soy. 
+
+Then the decorator is a type of beverage and also it has a beverage.(this introduces recursion, meaning we can wrap decorator over decorator like caramel over soy... and finally it ends up with a decafe/expresso)
+
+> The decorator doesn't add constraint over the order in which wrapping will be done.
+
+**Code logic**
+
+```python
+from abc import abstractmethod, ABC
+
+
+class Beverage:
+
+    @abstractmethod
+    def get_desc():
+        pass
+    
+    @abstractmethod
+    def cost():
+        pass
+
+class Decaf(Beverage):
+
+    def cost():
+        ...
+    
+    def get_desc():
+        ...
+
+class AddOnDecorator(Beverage, ABC):
+
+    def __init__(self, beverage: Beverage):
+        self.beverage = beverage
+
+    @abstractmethod
+    def cost():
+        pass
+
+    @abstractmethod
+    def get_desc():
+        pass
+
+class Caramel(AddOnDecorator):
+
+    def cost():
+        ...     # some decoration
+        xyz = self.beverage.cost()
+        ...
+        return xyz
+
+    def get_desc():
+        # similar to cost function
+
+
+##### main code
+
+decafe = Decafe()
+carameled_decafe = Caramel(decafe)
+
+carameled_decafe.cost()
+
+```
+
+
+
+## Misc Patterns
+
+* We can pass a config object to another object's constructor. The object will
+then use the configurations to decide what to do. For example, we could have
+a class that database connection object. To that we could pass the loggingConfig
+based on which logging of database would be done.
+
+```
+mainLoggingConfig = DatabaseConfig(indentation=2, logColor='red', logLevel=1)
+
+DatabaseConnection(URI, loggingConfig=mainLoggingConfig)
+    fun log(s):
+        space = mainLoggingConfig.indentation
+        color = mainLoggingConfig.color or color.BLUE
+        ...
+        ...
+
+```
+
+* We should avoid returning boolean from function as they would result in creating if/else statement elsewhere in our program.
