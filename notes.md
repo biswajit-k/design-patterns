@@ -16,138 +16,29 @@ Ways on how to create objects when there is some complex structure or requiremen
 
 ### Factory Method
 
-When we have more than one type of an item and we need to decide at runtime what to use. Factory method gives way to separate object creation and also provides common way to access these object using interface extension.
+Factory for creating different objects of same category.
 
-**Example**
+Using factory has below advantages-
+* Deciding which class object is to be created at runtime based on certain conditions(parameterized factory method)
 
-We have truck and sea transports. Both provide methods `load`, `unload` and `ship`.
+For example, we have a abstract `notificationFactory` and corresponding
+Alert and Promotional notification factories whose `createNotification()` function
+decides which notification to create(email and message) and with what
+parameters.
 
+* Abstracting complex object construction logic
+* Follows open-closed principle. As the object we are creating through factory is
+generic type it could later be replaced by just using different object's factory
 
-**Steps**
-
-* Have `transport` interface and its chlidren `truck` and `ship`.
-* Have `transportFactory` interface and its chlidren `truckFactory` and `ShipFactory`
-
-
-```cpp
-
-// Object Implementation
-#include <iostream>
-
-// Base class for Transport
-class Transport {
-public:
-    // Pure virtual methods
-    virtual void load() = 0;
-    virtual void unLoad() = 0;
-    virtual void ship() = 0;
-
-    // Virtual destructor for proper cleanup
-    virtual ~Transport() = default;
-};
-
-// Derived class Truck
-class Truck : public Transport {
-public:
-    void load() override {
-        // Truck load logic
-        std::cout << "Loading truck\n";
-    }
-
-    void unLoad() override {
-        // Truck unload logic
-        std::cout << "Unloading truck\n";
-    }
-
-    void ship() override {
-        // Truck ship logic
-        std::cout << "Shipping by truck\n";
-    }
-};
-
-// Derived class Ship
-class Ship : public Transport {
-public:
-    void load() override {
-        // Ship load logic
-        std::cout << "Loading ship\n";
-    }
-
-    void unLoad() override {
-        // Ship unload logic
-        std::cout << "Unloading ship\n";
-    }
-
-    void ship() override {
-        // Ship ship logic
-        std::cout << "Shipping by ship\n";
-    }
-};
-
-// Object Creator/Factory Interface
-class TransportFactory {
-public:
-    // Pure virtual method for creating transport objects
-    virtual Transport* getTransport() = 0;
-
-    // Virtual destructor for cleanup
-    virtual ~TransportFactory() = default;
-};
-
-// Factory for creating Truck objects
-class TruckFactory : public TransportFactory {
-public:
-    Transport* getTransport() override {
-        return new Truck();
-    }
-};
-
-// Factory for creating Ship objects
-class ShipFactory : public TransportFactory {
-public:
-    Transport* getTransport() override {
-        return new Ship();
-    }
-};
-
-// Example usage
-int main() {
-    // Create a Truck using the factory
-    TransportFactory* factory = new TruckFactory();
-    Transport* truck = factory->getTransport();
-    truck->load();
-    truck->ship();
-    truck->unLoad();
-
-    // Cleanup
-    delete truck;
-    delete factory;
-
-    // Create a Ship using the factory
-    factory = new ShipFactory();
-    Transport* ship = factory->getTransport();
-    ship->load();
-    ship->ship();
-    ship->unLoad();
-
-    // Cleanup
-    delete ship;
-    delete factory;
-
-    return 0;
-}
+For example, a notification factory and its sub-classes are EmailFactory and MessageFactory
+concrete products are Message and Email. Both implement class Notification.(because both email And
+message factory return notification type in code no problem if we replace later by a new type which
+is also a notification)
 
 
-```
+Below image shows parameterized factory method
+![factory method](/assets/factory_method.png)
 
-Advantages of factory are-
-* Managing any configuration and pre-steps of object creation at one place. Like-
-    
-    * Singleton object logic
-    * Caching logic
-    * Storing objects in a vector
-     
-* Separating creation logic. Client doesn't need to know how to create item. Plus if creation logic needs to be changed, client code doesn't need to be altered.
 
 ### Builder Pattern
 
@@ -417,21 +308,20 @@ class AutoCarAdapter(AutoCar):
 
     def drive(self, speed) -> None:
         if speed >= 0 and speed <= 10:
-            self._current_gear = 1
+            self._gear_car.current_gear = 1     # here we are chaining to get the
+                                                # current_gear(which is property of gear_car)
+                                                # which is ideally not good as we are accessing other object's property
+                                                # here. We can easily solve this by making a function in gear_car to set the gear
         elif speed <= 25:
-            self._current_gear = 2
+            self._gear_car.current_gear = 2
         elif speed <= 30:
-            self._current_gear = 3
+            self._gear_car.current_gear = 3
         elif speed <= 50:
-            self._current_gear = 4
+            self._gear_car.current_gear = 4
         else:
-            self._current_gear = 5
+            self._gear_car.current_gear = 5
 
-        self._gear_car.drive(self._current_gear)
-
-
-
-
+        self._gear_car.drive(self._gear_car.current_gear)
 
 
 # main code
@@ -490,7 +380,7 @@ class Compiler:
 
 ### Proxy Pattern
 
-Controlling access to an object through another object(proxy). This is done for reasons like - security, caching, etc
+Controlling access to an object through another object(proxy). This is done for reasons like - security, caching, lazy function call etc
 
 
 There are three types of proxy-
@@ -583,6 +473,28 @@ carameled_decafe.cost()
 
 ```
 
+### Bridge Pattern
+
+Say we have two different class of items A and B. Both A and B have
+their subclasses. A type uses B type items(composition).
+We need to have a system where any subclass of A can be used with any
+subclass of B.
+
+For example, we have a `View` class. it has two subclasses, `Landscape` and
+`Portrait`. Also, we have `Media` class that needs to be displayed in the `View`.
+`Media` has subclasses like `Photo`, `Video`, `Website`.
+
+We can use bridge pattern to construct above classes to make them compitable and easy
+to use.
+
+![bridge pattern](assets/bridge_pattern.png)
+
+**Example**
+
+* Used in creating custom item view like custom item recyclerview, 
+custom item cardview in android. Where recyclerview can
+contain different views like tiles, buttons, text. The recyclerview
+contains a list of `View` items. 
 
 
 ## Misc Patterns
@@ -605,3 +517,23 @@ DatabaseConnection(URI, loggingConfig=mainLoggingConfig)
 ```
 
 * We should avoid returning boolean from function as they would result in creating if/else statement elsewhere in our program.
+
+* Python don't have function overloading, however we can define single function
+and check the parameters we have got within it and decide what to do. Like below-
+
+```python
+# by checking type of parameter
+def drive(data):
+    if isinstance(data, list):
+        ...
+    if isinstance(data, str):
+        ...
+
+def drive(*args, **kwargs):
+
+    if args[0]...   # decide based on positional args
+    if kwargs[...]....  # decide based on keyword args
+
+
+
+```
