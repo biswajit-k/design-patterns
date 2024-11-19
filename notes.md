@@ -35,9 +35,35 @@ concrete products are Message and Email. Both implement class Notification.(beca
 message factory return notification type in code no problem if we replace later by a new type which
 is also a notification)
 
+* Factory is helpful in general when we want to dynamically create
+multiple objects of same type. 
+
+For example, we could pass the factory as a function parameter
+and we can generate as many objects inside.
+
 
 Below image shows parameterized factory method
 ![factory method](/assets/factory_method.png)
+
+
+### Abstract Factory
+
+Helps to create famalies of similar objects.
+
+So, for example, in a computer, 
+we have different elements like - button, files, menu, etc
+Also we have different os like windows, apple. Each have their own style
+of showing these elements. So, we can have factory for each OS.
+
+Advantages of using abstract factory-
+
+* Consistency in object creation of same family
+
+* Only changing the factory(from windows to apple), everything gets
+changed, with no other change required.
+
+![abstract factory](/assets/abstract_factory.png)
+
 
 
 ### Builder Pattern
