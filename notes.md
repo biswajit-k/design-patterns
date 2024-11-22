@@ -64,128 +64,52 @@ changed, with no other change required.
 
 ![abstract factory](/assets/abstract_factory.png)
 
-
-
 ### Builder Pattern
 
-When you have multiple different configurations possible to create an
-object. For example, to create a burger, you have options to add/not add
-like - cheese, capsicum, corn, olives, and more. Some would want only corn
-and cheese, others would want capsicum, olives and corn, etc
+To construct an object in multistep fashion and providing the properties
+of object to be constructed one by one in any order.
+Finally, the object is constructed using all the order that were given before
+in a systematic manner.
 
-**Simple Method**
+Example, a burger builder, you have various toppings like cheese, corn,
+capsicum, etc. which one to add you decide and finally, the pizza is created 
+based on the requirements in a systematic manner.
 
-To handle all configurations we can have a big parameter list
-in constructor and depending on the parameters we can decide to
-take item or not.
-
-But this method is a code smell. A better method is to use Builder
-pattern.
-
-**Builder Method**
-
-Have functions for each item. If we want some item, we can call the 
-function and the item will be returned after adding that item.
 
 Example,
 
-```cpp
+```python
 
-class House {
+class Pizza:
 
-    protected:
-    string walls, doors;
-    int windows, garage;
+    def __init__(self, cheese, capsicum, onion, corn):
+        self.cheese = cheese
+        ...
 
-    public:
-    House(HouseBuilder builder) {
-        this.walls = builder.walls;
-        this.doors = builder.doors;
-        this.windows = builder.windows;
-        this.garage = builder.garage;
-        
-    }
-};
 
-class HouseBuilder {
+class PizzaBuilder:
 
-    House* house;
+    def add_cheese(self, flavour="Morzilla"):
+        self.cheese = Cheese(flavour)
 
-    public:
-
-    HouseBuilder() {
-        house = new House();
-    }
-
-    HouseBuilder* buildWalls() {
-        // building walls logic
-        string walls = buildWallsLogic();
-        house->setWalls(walls);
-        return this;
-    }
-
-    HouseBuilder* buildDoors() {
-        // building doors logic
-        string doors = buildDoorsLogic();
-        house->setDoors(doors);
-        return this;
-    }
-
-    ...
+    def add_capsicum(self, type="bell pepper"):
+        self.capsicum = Capsicum(type)
+    
     ...
 
-    House* getHouse() {
-        return house;
-    }
-};
-
-// main code
-
-// my house has only walls and doors
-House* myHouse = (new HouseBuilder())->buildWalls()->buildDoors()->getHouse();
-```
-
-**Director**
-
-When we have multiple ways of building like - `WoodenHouseBuilder` and 
-`CementHouseBuilder` (each implementing the common `HouseBuilder` interface 
-with methods - *buildWalls*, *buildDoors*, etc).
-
-The logic of building wooden resides in woodenbuilder and similarly for cement.
-We will have a director as below-
-
-```cpp
-class HouseDirector {
-    HouseBuilder* builder;
-
-    public:
-    void setBuilder(Builder* builder) {
-        this.builder = builder;
-    }
-
-    House* constructHouse() {
-        builder->buildWalls();
-        builder->buildDoors();
-        ...
-        ...
-        return builder->getHouse();
-    }
-};
-
-// main code
-
-HouseDirector* director = new HouseDirector();
-WoodenBuilder* woodenBuilder = new WoodenBuilder();
-CementBuilder* cementBuilder = new CementBuilder();
-
-director->setBuilder(woodenBuilder);
-WoodenHouse* myWoodenHouse = director->constructHouse();
+    def create_pizza(self):
+        return Pizza(self.cheese, self.capsicum....)
 
 
-director->setBuilder(cementBuilder);
-CementHouse* myCementHouse = director->constructHouse();
+if __name__ == "__main__":
+    pizza_builder = PizzaBuilder()
 
-// yay! I have myWoodenHouse and myCementHouse
+    pizza_builder.add_capsicum("red")
+    pizza_builder.add_cheese()
+    pizza_builder.add_corn()
+
+    # finally create the pizza
+    pizza = pizza_builder.create_pizza()
 ```
 
 ### Singleton Pattern
@@ -200,38 +124,126 @@ This is a shared resource so in case of concurrent access, we need to design it 
 
 #### Method
 1. Make the constructor private
-2. Have a public function for object creation calls the constructor first time and saves object in a static field, further calls return the same object.
+2. Have a public static function for object creation calls the constructor first time and saves object in a static field, further calls return the same object.
 
 ```cpp
+
+#include <iostream>
+#include <mutex>
+
 class DatabaseConnection {
+private:
+    static DatabaseConnection* instance; // Single instance
+    static std::once_flag initFlag;      // Ensures single initialization
+    std::string connectionString;
 
-    string uri;
-
-    DatabaseConnection(string databaseUri) : uri(databaseUri) {
-        cout << "database connection created" << endl;
+    // Private constructor to prevent external instantiation
+    DatabaseConnection() {
+        std::cout << "DatabaseConnection created.\n";
+        connectionString = "DefaultConnectionString";
     }
 
-    DatabaseConnection(DatabaseConnection&) = delete;
-    DatabaseConnection& operator=(DatabaseConnection&) = delete;
+public:
+    // Delete copy constructor and assignment operator to avoid duplication
+    DatabaseConnection(const DatabaseConnection&) = delete;
+    DatabaseConnection& operator=(const DatabaseConnection&) = delete;
 
-    public:
+    // Destructor
+    ~DatabaseConnection() {
+        std::cout << "DatabaseConnection destroyed.\n";
+    }
 
-    static DatabaseConnection& getInstance(string databaseUri) {
-        static DatabaseConnection instance(databaseUri);
+    // Static method to provide access to the single instance
+    static DatabaseConnection* getInstance() {
+        std::call_once(initFlag, []() {
+            instance = new DatabaseConnection();
+        });
         return instance;
     }
 
-    void executeQuery(string query) {
-        // call database with the query using uri
+    // Example methods to simulate database operations
+    void connect() {
+        std::cout << "Connected to database with connection string: " 
+                  << connectionString << "\n";
     }
 
+    void disconnect() {
+        std::cout << "Disconnected from database.\n";
+    }
+
+    void setConnectionString(const std::string& connStr) {
+        connectionString = connStr;
+    }
+
+    std::string getConnectionString() const {
+        return connectionString;
+    }
 };
 
-// main
+// Initialize static members
+DatabaseConnection* DatabaseConnection::instance = nullptr;
+std::once_flag DatabaseConnection::initFlag;
 
-DatabaseConnection& connection = DatabaseConnection::getInstance("http://localhost:3456");
+// Main function to demonstrate the Singleton
+int main() {
+    // Access the Singleton instance and perform operations
+    DatabaseConnection* db1 = DatabaseConnection::getInstance();
+    db1->setConnectionString("Server=127.0.0.1;Database=MyDB;User=admin;Password=1234;");
+    db1->connect();
 
-connection.executeQuery("select * from accounts");
+    // Get the same instance elsewhere
+    DatabaseConnection* db2 = DatabaseConnection::getInstance();
+    std::cout << "Connection string in db2: " << db2->getConnectionString() << "\n";
+
+    db2->disconnect();
+
+    return 0;
+}
+
+
+// PS: AI generated
+```
+
+Code in python-
+```python
+import threading
+
+class DatabaseConnection:
+
+    # static variables
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            with self._lock:
+                if not cls._instance:
+                    cls._instance = super().__new__(cls)    # super helps in properly calling correct class method by following MRO(method resolution order)
+                    cls._instance.initialize()
+        return cls._instance
+
+    def initialize(self):
+        self.connection_string = "default_connection_string"
+
+    def connect(self):
+        # connection logic
+
+    def disconnect(self):
+        # disconnection logic
+
+    def set_connection_string(self, connection_string):
+        self.connection_string = connection_string
+
+
+if __name__ == "__main__":
+    db1 = DatabaseConnection()
+    db1.set_connection_string("localhost:5432/my_db")
+
+    db1.connect()
+    # perform task
+    db1.disconnect()
+
+    db2 = DatabaseConnection()  # same object as db1
 
 ```
 
