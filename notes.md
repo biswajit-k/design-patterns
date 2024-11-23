@@ -109,7 +109,7 @@ if __name__ == "__main__":
     pizza_builder.add_corn()
 
     # finally create the pizza
-    pizza = pizza_builder.create_pizza()
+    pizza_builder.create_pizza()
 ```
 
 ### Singleton Pattern
@@ -533,6 +533,129 @@ to use.
 custom item cardview in android. Where recyclerview can
 contain different views like tiles, buttons, text. The recyclerview
 contains a list of `View` items. 
+
+
+## Behavioural Design Patterns
+
+These patterns helps in determining how the *objects communicate 
+with each other* and delegate tasks to each other based on the 
+*responsibilities*.
+
+
+### Strategy Pattern
+
+When we have multiple algorithms for a method of a class, and which one to use
+for which sub-class depends on the sub-class.
+
+The solution is to have a interface for each of the behaviour(method) and 
+then have various concrete implementation of that interface. Then we can decide which
+one to plug in which sub-class. 
+
+So, we are basically using composition to inject the required behaviour for a method
+using the concerete interface.
+
+Note that we won't be able to solve this using inheritance because, inheritance is
+like a tree. You pass down the behaviour to the sub-classes. So, two classes down in 
+different sub-trees may share some behaviour but not be able to share other
+behaviour(*maybe because of this behaviour their parents moved in different trees*).
+
+**Example**
+
+We have a general `Server` class, the server could be a `Database`, 
+an `Application`, `Proxy`, etc.
+
+Server has two main functions - logging and authentication, and both of
+them have different strategies of doing it. Specifically-
+* Database - 
+    * log into terminal (`TerminalLogging`)
+    * username and password authentication
+
+* Application - 
+    * log to a file
+    * oAuth based authentication
+
+
+So, what we do is use the strategy pattern to create different strategies
+for logging and authentication. See the UML diagram below-
+
+![strategy pattern](assets/strategy_pattern.png)
+
+```python
+from abc import ABC, abstractmethod
+
+
+# abstract Logging class and its concrete classes
+class Logging(ABC):
+
+    @abstractmethod
+    def log(self, *args):
+        pass
+
+class FileLogging(Logging):
+
+    def log(self, *args):
+        file = args[0]
+        with open(file, 'a+') as f:
+            f.write(...)
+
+class TerminalLogging(Logging):
+
+    def log(self, *args):
+        print(...)
+
+# abstract Authentication class and its concrete classes
+class Authenticate(ABC):
+
+    @abstractmethod
+    def authenticate(self, *args):
+        pass
+
+class PasswordAuthenticate(Authenticate):
+
+    def authenticate(self, *args):
+        username, passwd = args[0], args[1]
+        ...
+
+class OauthAuthenticate(Authenticate):
+
+    def authenticate(self, *args):
+        token = args[0]
+        ...
+
+class Server:
+
+    def __init__(self, logging_behaviour: Logging, \
+            authentication_behaviour:Authentication):
+        self.logging = logging_behaviour
+        self.authentication = authentication_behaviour
+
+    def log():
+        self.logging.log()
+
+
+if __name__ == "__main__":
+    
+    # creating database server
+    terminal_logging = TerminalLogging()
+    password_authentication = PasswordAuthenticate()
+    database = Server(terminal_logging, password_authentication)
+    
+    database.log()  # logs in terminal
+    database.authenticate("admin", "strongpassword")  # authenticates user
+
+    # creating application server
+    file_logging = FileLogging()
+    oauth_authentication = OauthAuthenticate()
+    application = Server(file_logging, oauth_authentication)
+        
+    application.log()  # logs to a file
+    application.authenticate("oauth_token")  # authenticates using oAuth
+
+```
+
+### Observer Pattern
+### Command Pattern
+### State Pattern
 
 
 ## Misc Patterns
