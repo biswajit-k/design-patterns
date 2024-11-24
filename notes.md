@@ -5,9 +5,36 @@ They are not the exact solution but they give the idea and line of though for
 certain problems on how you should approach them.
 
 They are divided into three categories:
-* Creational
-* Structural
-* Behavioural
+
+<details>
+<summary>Creational</summary>
+
+* [Factory Method](#factory-method)
+* [Abstract Factory](#abstract-factory)
+* [Builder Pattern](#builder-pattern)
+* [Singleton Pattern](#singleton-pattern)
+
+</details>
+
+<details>
+<summary>Structural</summary>
+
+* [Adapter Pattern](#adapter-pattern)
+* [Facade Pattern](#facade-pattern)
+* [Proxy Pattern](#proxy-pattern)
+* [Decorator Pattern](#decorator-pattern)
+* [Bridge Pattern](#bridge-pattern)
+
+</details>
+
+<details>
+<summary>Behavioural</summary>
+
+* [Strategy Pattern](#strategy-pattern)
+* [Observer Pattern](#observer-pattern)
+* [Command Pattern](#command-pattern)
+
+</details>
 
 
 ## Creational Design Patterns
@@ -198,21 +225,6 @@ int main() {
     db1->connect();
 
     // Get the same instance elsewhere
-    DatabaseConnection* db2 = DatabaseConnection::getInstance();
-    std::cout << "Connection string in db2: " << db2->getConnectionString() << "\n";
-
-    db2->disconnect();
-
-    return 0;
-}
-
-
-// PS: AI generated
-```
-
-Code in python-
-```python
-import threading
 
 class DatabaseConnection:
 
@@ -674,6 +686,7 @@ This is a push based architecture as opposed to polling where the observers
 keep on polling for change which could go crazy when we have a lot of observers.
 
 Below shows the UML diagram of this pattern-
+
 ![observer pattern](/assets/observer_pattern.png)
 
 > Note that in above diagram we can further have a "has a" arrow from
@@ -706,6 +719,7 @@ present in different buttons.
 
 
 Below is the UML for the same-
+
 ![command pattern](/assets/command_pattern.png)
 
 
