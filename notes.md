@@ -19,30 +19,36 @@ Ways on how to create objects when there is some complex structure or requiremen
 Factory for creating different objects of same category.
 
 Using factory has below advantages-
+* Abstracting complex object construction logic that is beyond the capability
+of the object constructor. For example-
+    * getting information through API that will be used for object construction
+    * object caching mechanism after object construction
+    * maintaining count of objects created, etc
+
 * Deciding which class object is to be created at runtime based on certain conditions(parameterized factory method)
 
-For example, we have a abstract `notificationFactory` and corresponding
-Alert and Promotional notification factories whose `createNotification()` function
-decides which notification to create(email and message) and with what
-parameters.
+    * For example, we have two types of notification - message and email. The type is decided
+        based on the sign up method of user(mobile no. or email).
+        
+        Hence, we create a `notificationFactory` that constructs a `Notification`
+        based on the sign up method of user. With this we would just use the factory
+        and don't need to care about the type of notification. 
 
-* Abstracting complex object construction logic
-* Follows open-closed principle. As the object we are creating through factory is
-generic type it could later be replaced by just using different object's factory
-
-For example, a notification factory and its sub-classes are EmailFactory and MessageFactory
-concrete products are Message and Email. Both implement class Notification.(because both email And
-message factory return notification type in code no problem if we replace later by a new type which
-is also a notification)
+* Decoupling logic and flexibility. Since, we have a generalized class `Notification`, we are easily 
+able to adapt message and email through a common code.
 
 * Factory is helpful in general when we want to dynamically create
 multiple objects of same type. 
 
-For example, we could pass the factory as a function parameter
-and we can generate as many objects inside.
+    * For example, we could pass the factory as a function parameter
+    and we can generate as many objects inside.
 
 
-Below image shows parameterized factory method
+Below image shows use of factory method. In below scenario, we have below condition - 
+* whether the notification needs to be sent to email or message
+    * depends on user sign up option(mobile no. or email)
+
+
 ![factory method](/assets/factory_method.png)
 
 
@@ -52,7 +58,7 @@ Helps to create famalies of similar objects.
 
 So, for example, in a computer, 
 we have different elements like - button, files, menu, etc
-Also we have different os like windows, apple. Each have their own style
+Also we have different operating system like windows, apple. Each have their own style
 of showing these elements. So, we can have factory for each OS.
 
 Advantages of using abstract factory-
@@ -326,9 +332,9 @@ class GearCar():
     
     def drive(self, gear) -> None:
         self.current_gear = gear
-        self.__acclerate(gear)
+        self._acclerate(gear)
 
-    def __acclerate(self, gear) -> None:
+    def _acclerate(self, gear) -> None:
         pass
 
 
@@ -433,6 +439,7 @@ There are three types of proxy-
 It is different from decorator pattern in the sense that although it adds functionality, it is only to control access and not modify core behaviour
 
 ![proxy pattern](/assets/proxy%20pattern.png)
+credit - [Proxy Pattern by Christopher Okhravi](https://www.youtube.com/watch?v=NwaabHqPHeM) 
 
 In above, the proxy has the `real subject` and both proxy and real subject implement the interface `Isubject` 
 
@@ -446,6 +453,9 @@ Adding additional functionality over existing object while keeping the interface
 The decorator is a wrapper with same interface as the object it is wrapping, which adds/modify functionality of the object
 
 ![decorator pattern](/assets/decorator_pattern.png)
+
+
+credit - [Decorator Pattern by Christopher Okhravi](https://youtu.be/GCraGHx6gso?si=QFaBpL_BnvxT0S64) 
 
 In above, we have two main coffee(decaf, expresso) and we have additional flavours like caramel, soy. 
 
@@ -647,18 +657,59 @@ if __name__ == "__main__":
     file_logging = FileLogging()
     oauth_authentication = OauthAuthenticate()
     application = Server(file_logging, oauth_authentication)
-        
+
     application.log()  # logs to a file
     application.authenticate("oauth_token")  # authenticates using oAuth
 
 ```
 
 ### Observer Pattern
+
+To notify list of objects(observers) when the state of a source(observable) changes.
+
+The idea is that the observers get them registered with the observable and whenever
+the state of observable changes, it will notify all the observers.
+
+This is a push based architecture as opposed to polling where the observers 
+keep on polling for change which could go crazy when we have a lot of observers.
+
+Below shows the UML diagram of this pattern-
+![observer pattern](/assets/observer_pattern.png)
+
+> Note that in above diagram we can further have a "has a" arrow from
+concrete observer to the concerete observable. Like - `new ConcreteObserver(*ConcreteObserver)` 
+(*a reference in the constructor*). This would help the observer read the state of observable on update to
+see what has changed.
+
+**Usecases**
+* Used in react state management libraries like React Context API and Redux to manage
+states and update components on change.
+* An example could be to use it in a weather station, which senses temperature and notify
+the devices registered about the change.
+
+
 ### Command Pattern
-### State Pattern
+
+When we have command invokers and receivers. There could be multiple
+invokers, receivers and also multiple commands that can be invoked.
+
+So, instead of implementing command logic within invokers we seperate the concern
+to altogether different object called `Command`. 
+By this, we would be able to execute different commands by invoker and also
+same command could be executed upon different receivers.
+
+**usecase**
+* Let's say we have a text editor screen and there are multiple buttons.
+Same command could be executed on different receivers through different buttons.
+Like a save command could save in a file, or save to a clipboard and these would be
+present in different buttons.
 
 
-## Misc Patterns
+Below is the UML for the same-
+![command pattern](/assets/command_pattern.png)
+
+
+## Misc
 
 * We can pass a config object to another object's constructor. The object will
 then use the configurations to decide what to do. For example, we could have
@@ -677,8 +728,6 @@ DatabaseConnection(URI, loggingConfig=mainLoggingConfig)
 
 ```
 
-* We should avoid returning boolean from function as they would result in creating if/else statement elsewhere in our program.
-
 * Python don't have function overloading, however we can define single function
 and check the parameters we have got within it and decide what to do. Like below-
 
@@ -695,6 +744,9 @@ def drive(*args, **kwargs):
     if args[0]...   # decide based on positional args
     if kwargs[...]....  # decide based on keyword args
 
-
-
 ```
+
+## References
+
+* [Christopher Okhravi | Youtube](https://www.youtube.com/@ChristopherOkhravi)
+* [Refactoring Guru - Design Patterns](https://refactoring.guru/design-patterns)
